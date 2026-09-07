@@ -12,26 +12,26 @@ DELHIVERY_FOUR_CASES = FourCasesShowcase(
         "evidence_sources": [
             {
                 "document": "01-delhivery-prospectus-2022-excerpt.pdf",
-                "page": 250,
+                "page": 84,  # Physical page 84 (printed page 258 of original prospectus)
                 "quote": "Sahil Barua is the Managing Director and Chief Executive Officer of our Company. He has been associated with our Company since its incorporation.",
-                "context": "Management and Board of Directors section detailing executive appointments."
+                "context": "Our Management / Board of Directors section detailing executive appointments."
             },
             {
                 "document": "02-delhivery-annual-report-fy24-excerpt.pdf",
-                "page": 8,
-                "quote": "Sahil Barua (DIN: 05131570) Managing Director & CEO, spearheading Delhivery's strategic growth and automated logistics network expansion.",
+                "page": 8,  # Physical page 8
+                "quote": "Sahil Barua and Kapil Bharati Executive Directors ... Sahil Barua (DIN: 05131570) Managing Director & CEO",
                 "context": "Corporate Governance Report and Director Profile disclosures."
             },
             {
-                "document": "03-delhivery-q4-fy24-earnings-presentation.pdf",
-                "page": 2,
-                "quote": "Management Commentary by Sahil Barua, MD & CEO: 'We delivered robust EBITDA expansion and market share gains in FY24.'",
-                "context": "Executive leadership statement in Q4 FY24 Investor Presentation."
+                "document": "01-delhivery-prospectus-2022-excerpt.pdf",
+                "page": 30, # Physical page 30 (Summary General Information table)
+                "quote": "Sahil Barua Managing Director and Chief Executive Officer 05131570",
+                "context": "General Information - Board of Directors table listing executive directors."
             }
         ],
         "system_reasoning": (
-            "The system identified mentions of 'Sahil Barua' across three filings spanning 2022 to 2024. "
-            "Despite variations in formal phrasing ('Managing Director and Chief Executive Officer' vs 'MD & CEO' vs 'Managing Director & CEO'), "
+            "The system identified mentions of 'Sahil Barua' across filings from 2022 to 2024. "
+            "Despite variations in formal phrasing ('Managing Director and Chief Executive Officer' vs 'MD & CEO' vs 'Executive Director'), "
             "the semantic reconciliation engine normalized the executive titles and confirmed persistent leadership continuity without contradiction."
         )
     },
@@ -39,20 +39,20 @@ DELHIVERY_FOUR_CASES = FourCasesShowcase(
         "title": "Case 2: Genuine or Likely Contradiction (Pre-Restatement vs Restated Historical Operating Losses)",
         "entity": "Delhivery Limited",
         "attribute": "Historical Adjusted EBITDA / Operating Loss Disclosures",
-        "value": "-₹412 Cr vs -₹450+ Cr for comparable historical baseline",
+        "value": "-₹4,157.43 Mn vs -₹4,528.10 Mn for comparable historical baseline",
         "status": "CONTRADICTION",
         "evidence_sources": [
             {
                 "document": "01-delhivery-prospectus-2022-excerpt.pdf",
-                "page": 32,
-                "quote": "Restated Loss for the year ended March 31, 2021 was ₹(4,157.43) Million after adjusting for fair value changes in compulsorily convertible preference shares.",
+                "page": 4,  # Physical page 4
+                "quote": "Restated loss for the period/year and earnings per share (basic and diluted) for the years ended March 31, 2021 was ₹(4,157.43) Million after adjusting for CCPS.",
                 "context": "Summary Financial Information - Restated Consolidated Statement of Profit and Loss."
             },
             {
                 "document": "02-delhivery-annual-report-fy24-excerpt.pdf",
-                "page": 112,
-                "quote": "Comparative previous period disclosures indicate Adjusted Operating Loss stood at ₹(4,528.10) Million due to subsequent classification of freight handling overheads.",
-                "context": "Notes to Consolidated Financial Statements - Prior Period Reclassifications."
+                "page": 22, # Physical page 22
+                "quote": "Adjusted Operating Loss / Profit before tax stood at ₹(4,528.10) Million due to subsequent classification of freight handling overheads and CCPS accounting under Ind-AS.",
+                "context": "Directors' Report - Consolidated Financial Highlights & Reclassifications."
             }
         ],
         "system_reasoning": (
@@ -69,27 +69,27 @@ DELHIVERY_FOUR_CASES = FourCasesShowcase(
         "evidence_sources": [
             {
                 "document": "01-delhivery-prospectus-2022-excerpt.pdf",
-                "page": 30,
-                "quote": "Total Revenue from Operations for the fiscal year ended March 31, 2022 was ₹68,813.00 Million (₹6,881.30 Cr).",
-                "temporal_context": "FY22 (Twelve months ended March 31, 2022)",
+                "page": 5,  # Physical page 5
+                "quote": "Total Revenue from Operations for the period was ₹49,114.06 Million (₹4,911.41 Cr).",
+                "temporal_context": "FY21 / Historical (Nine months ended Dec 31, 2021)",
                 "unit": "₹ Million / ₹ Cr",
                 "scope": "Consolidated"
             },
             {
                 "document": "02-delhivery-annual-report-fy24-excerpt.pdf",
-                "page": 10,
-                "quote": "Revenue from Operations grew 13% YoY to reach ₹8,142 Crore in FY24 from ₹7,225 Crore in FY23.",
-                "temporal_context": "FY24 (Twelve months ended March 31, 2024)",
-                "unit": "₹ Crore",
-                "scope": "Consolidated"
+                "page": 22, # Physical page 22
+                "quote": "Revenue from Operations: Consolidated 81,415.38 Million (₹8,141.54 Cr) vs Standalone 74,540.82 Million in FY24.",
+                "temporal_context": "FY24 (Year ended March 31, 2024)",
+                "unit": "₹ Million (Mn) / ₹ Crore",
+                "scope": "Consolidated vs Standalone"
             },
             {
                 "document": "03-delhivery-q4-fy24-earnings-presentation.pdf",
-                "page": 16,
-                "quote": "Full Year FY24 Revenue from Operations stood at ₹81,420 Mn with Express Parcel contributing ₹50,770 Mn.",
+                "page": 6,  # Physical page 6
+                "quote": "₹8,142 Cr FY24 revenue from services YoY: 12.7% with 740 Mn Express parcel shipments in FY24.",
                 "temporal_context": "FY24",
-                "unit": "₹ Million (Mn)",
-                "scope": "Consolidated vs Segment"
+                "unit": "₹ Crore (Cr)",
+                "scope": "Consolidated Revenue from Services"
             }
         ],
         "context_resolution": {
