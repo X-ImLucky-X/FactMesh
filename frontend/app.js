@@ -1,6 +1,6 @@
 // ==========================================================================
-// FACT KNOWLEDGE LAYER // SYNTHETIX COMMAND CONTROLLER
-// High-performance controller with RepoWhisper-style Cyberpunk Brutalism HUD
+// FACT KNOWLEDGE LAYER // SYNTHETIX 3D COMMAND CONTROLLER
+// High-performance controller with 3D Interactable Force Graph & HUD Drawer
 // ==========================================================================
 
 let currentDataset = 'dynamic';
@@ -11,19 +11,18 @@ let activeRelFilter = 'ALL';
 let displayedFactsCount = 50;
 let filteredFactsList = [];
 
-// Knowledge Graph State
-let graphNodes = [];
-let graphEdges = [];
-let isDragging = false;
-let draggedNode = null;
-let hoveredNode = null;
-let isGraphInitialized = false;
+// 3D Knowledge Graph State
+let graph3DInstance = null;
+let isAutoRotating = false;
+let rawGraphData = { nodes: [], edges: [] };
 
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initDropzone();
     fetchStatus();
     loadDatasetShowcase(currentDataset);
+
+    window.addEventListener('resize', handleWindowResize);
 });
 
 // ==========================================================================
@@ -42,7 +41,7 @@ function initNavigation() {
             if (targetPane) targetPane.classList.add('active');
 
             if (targetPaneId === 'graph-tab') {
-                setTimeout(initKnowledgeGraph, 50);
+                setTimeout(initKnowledgeGraph, 80);
             }
         });
     });
@@ -91,7 +90,11 @@ async function loadDataset(name) {
         showToast(`INGESTED ${data.details.documents_ingested} PDFS // EXTRACTED ${data.details.total_facts} GROUNDED FACTS!`);
         fetchStatus();
         loadDatasetShowcase(name);
-        isGraphInitialized = false;
+        
+        // Refresh 3D Graph
+        if (graph3DInstance) {
+            initKnowledgeGraph();
+        }
     } catch (err) {
         showToast('INGESTION FAILURE: ' + err.message);
     }
@@ -137,7 +140,7 @@ async function loadDatasetShowcase(datasetName) {
                                 <span class="page-chip">PAGE ${src.page}</span>
                             </div>
                             <div class="evidence-quote">"${src.quote}"</div>
-                            <div class="text-dim text-xs">${src.context}</div>
+                            <div class="text-dim text-sm">${src.context}</div>
                         </div>
                     `).join('')}
                 </div>
@@ -165,7 +168,7 @@ async function loadDatasetShowcase(datasetName) {
                                 <span class="page-chip">PAGE ${src.page}</span>
                             </div>
                             <div class="evidence-quote" style="border-left-color: var(--cyber-rose);">"${src.quote}"</div>
-                            <div class="text-dim text-xs">${src.context}</div>
+                            <div class="text-dim text-sm">${src.context}</div>
                         </div>
                     `).join('')}
                 </div>
@@ -193,15 +196,15 @@ async function loadDatasetShowcase(datasetName) {
                                 <span class="page-chip">PAGE ${src.page}</span>
                             </div>
                             <div class="evidence-quote" style="border-left-color: var(--cyber-amber);">"${src.quote}"</div>
-                            <div class="text-dim text-xs">${src.temporal_context || ''} // Scope: ${src.scope || 'Consolidated'}</div>
+                            <div class="text-dim text-sm">${src.temporal_context || ''} // Scope: ${src.scope || 'Consolidated'}</div>
                         </div>
                     `).join('')}
                 </div>
-                <div class="reasoning-box" style="margin-bottom:8px;">
+                <div class="reasoning-box" style="margin-bottom:10px;">
                     <div class="reasoning-title" style="color: var(--cyber-amber);">
                         <span>📐</span> MULTI-DIMENSIONAL CONTEXT RESOLUTION
                     </div>
-                    <div style="font-size:0.8rem; color:var(--text-primary); line-height:1.6;">
+                    <div style="font-size:0.92rem; color:var(--text-primary); line-height:1.7;">
                         ${Object.entries(data.case_3_apparent_contradiction_explained.context_resolution || {}).map(([k, v]) => `
                             <div><strong style="color:var(--cyber-cyan);">${k.replace('_', ' ').toUpperCase()}:</strong> ${v}</div>
                         `).join('')}
@@ -231,7 +234,7 @@ async function loadDatasetShowcase(datasetName) {
                     <div class="evidence-quote" style="border-left-color: var(--cyber-primary);">
                         RAW UNSTRUCTURED STRING: "${data.case_4_failure_and_remediation.raw_text_snippet}"
                     </div>
-                    <div style="font-size:0.82rem; color:var(--cyber-rose); margin-top:4px;">
+                    <div style="font-size:0.92rem; color:var(--cyber-rose); margin-top:6px;">
                         <strong>⚠️ PROBLEMATIC EXTRACTION:</strong> ${data.case_4_failure_and_remediation.problematic_extraction}
                     </div>
                 </div>
@@ -239,10 +242,10 @@ async function loadDatasetShowcase(datasetName) {
                     <div class="reasoning-title" style="color: var(--cyber-primary);">
                         <span>🔬</span> ROOT CAUSE & ARCHITECTURAL MITIGATION
                     </div>
-                    <p class="reasoning-text" style="margin-bottom:6px;">
+                    <p class="reasoning-text" style="margin-bottom:8px;">
                         <strong style="color:var(--text-pure);">ROOT CAUSE:</strong> ${data.case_4_failure_and_remediation.root_cause}
                     </p>
-                    <p class="reasoning-text" style="margin-bottom:6px;">
+                    <p class="reasoning-text" style="margin-bottom:8px;">
                         <strong style="color:var(--text-pure);">ENGINE HANDLING:</strong> ${data.case_4_failure_and_remediation.handling_and_remediation}
                     </p>
                     <p class="reasoning-text" style="color: var(--cyber-emerald);">
@@ -290,14 +293,14 @@ function renderFactsTable() {
     for (let i = 0; i < factsToRender.length; i++) {
         const f = factsToRender[i];
         const rawQuote = (f.evidence && f.evidence.verbatim_quote) ? f.evidence.verbatim_quote : '';
-        const preview = rawQuote.length > 80 ? rawQuote.substring(0, 80) + '...' : rawQuote;
+        const preview = rawQuote.length > 90 ? rawQuote.substring(0, 90) + '...' : rawQuote;
 
         html += `
             <tr>
                 <td><span class="fact-entity-chip">${escapeHtml(f.entity)}</span></td>
                 <td><span class="fact-attr-chip">${escapeHtml(f.attribute)}</span></td>
                 <td><span class="fact-val-chip">${escapeHtml(f.raw_value || String(f.value))} ${f.unit ? `<small>(${escapeHtml(f.unit)})</small>` : ''}</span></td>
-                <td><span class="text-dim text-xs">${escapeHtml(f.temporal_context || 'N/A')} // ${escapeHtml(f.scope_context || 'Consolidated')}</span></td>
+                <td><span class="text-dim text-sm">${escapeHtml(f.temporal_context || 'N/A')} // ${escapeHtml(f.scope_context || 'Consolidated')}</span></td>
                 <td><span class="doc-tag">${escapeHtml(f.document_name)}</span> <span class="page-chip">p. ${f.page_number}</span></td>
                 <td><span class="snippet-preview" title="${escapeHtml(rawQuote)}">"${escapeHtml(preview)}"</span></td>
                 <td><button class="cyber-btn btn-cyan btn-sm" onclick="openEvidenceModalById('${f.id}')">GROUNDING</button></td>
@@ -353,7 +356,6 @@ async function fetchRelationships() {
         const res = await fetch('/api/relationships');
         allRelationships = await res.json();
         
-        // Update KPI counters
         let apparentCount = 0;
         let contradictionCount = 0;
         allRelationships.forEach(r => {
@@ -397,7 +399,7 @@ function renderRelationships(rels) {
             <div class="rel-card" style="border-left: 5px solid ${borderColor};">
                 <div class="rel-header">
                     <span class="case-badge-pill ${badgeClass}">${typeLabel}</span>
-                    <span class="text-dim text-xs">${r.source_fact?.attribute?.toUpperCase() || 'CROSS-MATCH'}</span>
+                    <span class="text-dim text-sm">${r.source_fact?.attribute?.toUpperCase() || 'CROSS-MATCH'}</span>
                 </div>
                 <div class="rel-comparison-view">
                     <div class="evidence-box">
@@ -406,7 +408,7 @@ function renderRelationships(rels) {
                             <span class="page-chip">p. ${r.source_fact?.page_number}</span>
                         </div>
                         <div class="fact-val">${r.source_fact?.raw_value || r.source_fact?.value}</div>
-                        <div class="evidence-quote" style="font-size:0.75rem;">"${r.source_fact?.evidence.verbatim_quote}"</div>
+                        <div class="evidence-quote" style="font-size:0.86rem;">"${r.source_fact?.evidence.verbatim_quote}"</div>
                     </div>
                     <div class="evidence-box">
                         <div class="evidence-header">
@@ -414,7 +416,7 @@ function renderRelationships(rels) {
                             <span class="page-chip">p. ${r.target_fact?.page_number}</span>
                         </div>
                         <div class="fact-val">${r.target_fact?.raw_value || r.target_fact?.value}</div>
-                        <div class="evidence-quote" style="font-size:0.75rem;">"${r.target_fact?.evidence.verbatim_quote}"</div>
+                        <div class="evidence-quote" style="font-size:0.86rem;">"${r.target_fact?.evidence.verbatim_quote}"</div>
                     </div>
                 </div>
                 <div class="reasoning-box">
@@ -453,8 +455,8 @@ async function fetchDocuments() {
         list.innerHTML = allDocuments.map(d => `
             <div class="doc-item-card">
                 <div>
-                    <strong style="color:var(--text-pure);">${d.filename}</strong>
-                    <div class="text-dim text-xs">${d.page_count} PAGES // ${(d.file_size_bytes / (1024*1024)).toFixed(2)} MB</div>
+                    <strong style="color:var(--text-pure); font-size:1.02rem;">${d.filename}</strong>
+                    <div class="text-dim text-sm">${d.page_count} PAGES // ${(d.file_size_bytes / (1024*1024)).toFixed(2)} MB</div>
                 </div>
                 <span class="case-badge-pill badge-apparent">${d.facts_count} FACTS</span>
             </div>
@@ -509,7 +511,7 @@ async function executeQuery() {
                         <span class="page-chip">PAGE ${f.page_number} // ${f.entity}</span>
                     </div>
                     <div class="evidence-quote">"${f.evidence.verbatim_quote}"</div>
-                    <div class="text-dim text-xs">${f.attribute}: <strong style="color:var(--cyber-cyan);">${f.raw_value || f.value}</strong> (${f.temporal_context || 'N/A'})</div>
+                    <div class="text-dim text-sm">${f.attribute}: <strong style="color:var(--cyber-cyan);">${f.raw_value || f.value}</strong> (${f.temporal_context || 'N/A'})</div>
                 </div>
             `).join('');
         }
@@ -527,6 +529,204 @@ function setQuery(text) {
 }
 
 // ==========================================================================
+// 3D INTERACTABLE KNOWLEDGE GRAPH (RepoWhisper Three.js Engine)
+// ==========================================================================
+async function initKnowledgeGraph() {
+    const container = document.getElementById('graph-3d-canvas');
+    if (!container) return;
+
+    try {
+        const res = await fetch('/api/graph');
+        const data = await res.json();
+        rawGraphData = data;
+
+        // Cap graph rendering to top 90 most connected nodes for silky 60fps 3D
+        const nodesToRender = data.nodes.slice(0, 90);
+        const nodeIds = new Set(nodesToRender.map(n => n.id));
+
+        const formattedNodes = nodesToRender.map(n => {
+            const isDoc = n.type === 'document';
+            const isEntity = n.type === 'entity';
+            return {
+                id: n.id,
+                label: n.label || n.id,
+                type: n.type,
+                details: n.details || {},
+                val: isDoc ? 18 : (isEntity ? 12 : 7),
+                color: isDoc ? '#FFE600' : (isEntity ? '#00E0FF' : '#BD00FF')
+            };
+        });
+
+        const formattedLinks = data.edges
+            .filter(e => nodeIds.has(e.source) && nodeIds.has(e.target))
+            .map(e => {
+                const rel = e.relationship_type;
+                const linkColor = rel === 'CORROBORATED' ? '#10B981' :
+                                  rel === 'CONTRADICTION' ? '#F43F5E' :
+                                  rel === 'APPARENT_CONTRADICTION_EXPLAINED' ? '#F59E0B' :
+                                  'rgba(255, 255, 255, 0.22)';
+                return {
+                    source: e.source,
+                    target: e.target,
+                    relationship_type: rel,
+                    color: linkColor,
+                    width: rel ? 2.5 : 1
+                };
+            });
+
+        const gData = { nodes: formattedNodes, links: formattedLinks };
+
+        // Clean any previous instances
+        container.innerHTML = '';
+
+        if (typeof ForceGraph3D === 'undefined') {
+            container.innerHTML = '<div class="cyber-loading" style="color:var(--cyber-rose);">3D ENGINE LOAD FAILED. CHECK INTERNET OR LOCAL BUNDLE.</div>';
+            return;
+        }
+
+        const width = container.clientWidth || 900;
+        const height = container.clientHeight || 550;
+
+        graph3DInstance = ForceGraph3D()(container)
+            .width(width)
+            .height(height)
+            .graphData(gData)
+            .backgroundColor('#0B0F19')
+            .nodeLabel(n => `[${n.type.toUpperCase()}] ${n.label}`)
+            .nodeColor('color')
+            .nodeVal('val')
+            .nodeResolution(16)
+            .linkColor('color')
+            .linkWidth('width')
+            .linkDirectionalParticles(2)
+            .linkDirectionalParticleSpeed(0.006)
+            .linkDirectionalParticleWidth(2.5)
+            .onNodeClick(handle3DNodeClick);
+
+        // Position camera for optimal overview
+        graph3DInstance.cameraPosition({ x: 0, y: 0, z: 280 });
+
+    } catch (err) {
+        console.error('3D Graph initialization error:', err);
+    }
+}
+
+function handle3DNodeClick(node) {
+    if (!graph3DInstance || !node) return;
+
+    // Smooth camera fly-to animation targeting clicked node
+    const distance = 90;
+    const hyp = Math.hypot(node.x, node.y, node.z) || 1;
+    const distRatio = 1 + distance / hyp;
+
+    graph3DInstance.cameraPosition(
+        { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio + 40 },
+        { x: node.x, y: node.y, z: node.z },
+        1500
+    );
+
+    openNodeInspector(node);
+}
+
+function openNodeInspector(node) {
+    const drawer = document.getElementById('node-inspector-drawer');
+    const badge = document.getElementById('drawer-node-type');
+    const title = document.getElementById('drawer-node-title');
+    const body = document.getElementById('drawer-node-body');
+    if (!drawer || !badge || !title || !body) return;
+
+    badge.innerText = node.type.toUpperCase();
+    badge.style.background = node.type === 'document' ? 'var(--cyber-yellow)' :
+                             node.type === 'entity' ? 'var(--cyber-cyan)' : 'var(--cyber-primary)';
+    badge.style.color = '#000';
+    title.innerText = node.label || node.id;
+
+    // Find facts related to this node
+    let matchedFacts = [];
+    if (node.type === 'document') {
+        matchedFacts = allFacts.filter(f => f.document_name.toLowerCase().includes(node.id.toLowerCase()));
+    } else if (node.type === 'entity') {
+        matchedFacts = allFacts.filter(f => f.entity.toLowerCase() === node.id.toLowerCase());
+    } else {
+        matchedFacts = allFacts.filter(f => f.id === node.id);
+    }
+
+    let factsHtml = '';
+    if (matchedFacts.length) {
+        factsHtml = matchedFacts.slice(0, 8).map(f => `
+            <div class="evidence-box">
+                <div class="evidence-header">
+                    <span class="doc-tag">${escapeHtml(f.document_name)}</span>
+                    <span class="page-chip">PAGE ${f.page_number}</span>
+                </div>
+                <div style="font-size:1.05rem; font-weight:900; color:var(--cyber-cyan);">${escapeHtml(f.attribute)}: ${escapeHtml(f.raw_value || String(f.value))}</div>
+                <div class="evidence-quote" style="font-size:0.88rem;">"${escapeHtml(f.evidence?.verbatim_quote || '')}"</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                    <span class="text-dim text-xs">${escapeHtml(f.temporal_context || 'N/A')}</span>
+                    <button class="cyber-btn btn-cyan btn-sm" onclick="openEvidenceModalById('${f.id}')">FULL GROUNDING →</button>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        factsHtml = '<div class="text-dim text-sm">No direct facts attached to this node index.</div>';
+    }
+
+    body.innerHTML = `
+        <div style="font-size:0.88rem; color:var(--text-muted); border-bottom:1px solid var(--cyber-border); padding-bottom:8px;">
+            ASSOCIATED KNOWLEDGE RECORDS (${matchedFacts.length} FOUND)
+        </div>
+        ${factsHtml}
+    `;
+
+    drawer.style.display = 'flex';
+}
+
+function closeNodeInspector() {
+    const drawer = document.getElementById('node-inspector-drawer');
+    if (drawer) drawer.style.display = 'none';
+}
+
+function resetGraphCamera() {
+    if (graph3DInstance) {
+        graph3DInstance.cameraPosition({ x: 0, y: 0, z: 280 }, { x: 0, y: 0, z: 0 }, 1200);
+    }
+}
+
+function toggleGraphAutoRotate() {
+    if (!graph3DInstance) return;
+    const btn = document.getElementById('btn-toggle-rotate');
+    isAutoRotating = !isAutoRotating;
+
+    const controls = graph3DInstance.controls();
+    if (controls) {
+        controls.autoRotate = isAutoRotating;
+        controls.autoRotateSpeed = 1.2;
+    }
+
+    if (btn) {
+        btn.innerHTML = isAutoRotating ? '<span>🔄 AUTO-ROTATE: ON</span>' : '<span>🔄 AUTO-ROTATE: OFF</span>';
+        btn.className = isAutoRotating ? 'cyber-btn btn-emerald btn-sm' : 'cyber-btn btn-purple btn-sm';
+    }
+}
+
+function reheatGraphSimulation() {
+    if (graph3DInstance) {
+        graph3DInstance.d3ReheatSimulation();
+        showToast('RE-HEATED 3D FORCE LAYOUT SIMULATION');
+    }
+}
+
+function handleWindowResize() {
+    if (graph3DInstance) {
+        const container = document.getElementById('graph-3d-canvas');
+        if (container) {
+            graph3DInstance.width(container.clientWidth);
+            graph3DInstance.height(container.clientHeight);
+        }
+    }
+}
+
+// ==========================================================================
 // GROUNDING & PROVENANCE INSPECTION MODAL
 // ==========================================================================
 function openEvidenceModalById(factId) {
@@ -538,33 +738,33 @@ function openEvidenceModalById(factId) {
     if (!modal || !body) return;
 
     body.innerHTML = `
-        <div style="margin-bottom:14px; border-bottom:2px solid var(--cyber-border); padding-bottom:10px;">
-            <div style="font-size:1.1rem; font-weight:900; color:var(--text-pure);">${escapeHtml(fact.entity)} — ${escapeHtml(fact.attribute)}</div>
-            <div style="margin-top:4px; font-size:1.3rem; color:var(--cyber-cyan); font-weight:900;">
+        <div style="margin-bottom:16px; border-bottom:2px solid var(--cyber-border); padding-bottom:12px;">
+            <div style="font-size:1.25rem; font-weight:900; color:var(--text-pure);">${escapeHtml(fact.entity)} — ${escapeHtml(fact.attribute)}</div>
+            <div style="margin-top:6px; font-size:1.45rem; color:var(--cyber-cyan); font-weight:900;">
                 ${escapeHtml(fact.raw_value || String(fact.value))} ${fact.unit ? `<small>(${escapeHtml(fact.unit)})</small>` : ''}
             </div>
         </div>
 
-        <div class="evidence-box" style="margin-bottom:14px;">
+        <div class="evidence-box" style="margin-bottom:16px;">
             <div class="evidence-header">
                 <span class="doc-tag">${escapeHtml(fact.document_name)}</span>
                 <span class="page-chip">PHYSICAL PAGE ${fact.page_number}</span>
             </div>
-            <div class="evidence-quote" style="font-size:0.95rem; border-left:4px solid var(--cyber-cyan);">
+            <div class="evidence-quote" style="font-size:1.05rem; border-left:4px solid var(--cyber-cyan);">
                 "${escapeHtml(fact.evidence.verbatim_quote)}"
             </div>
         </div>
 
-        <div class="reasoning-box" style="margin-bottom:14px;">
+        <div class="reasoning-box" style="margin-bottom:16px;">
             <div class="reasoning-title">
                 <span>📄</span> VERBATIM SURROUNDING CONTEXT WINDOW
             </div>
-            <div style="font-size:0.8rem; font-family:var(--font-mono); color:var(--text-primary); line-height:1.5; background:#000; padding:10px; border:1px solid var(--cyber-border); white-space:pre-wrap;">
+            <div style="font-size:0.92rem; font-family:var(--font-mono); color:var(--text-primary); line-height:1.6; background:#000; padding:12px; border:1px solid var(--cyber-border); white-space:pre-wrap;">
 ${escapeHtml(fact.evidence.context_window || 'Context window captured.')}
             </div>
         </div>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.75rem; background:var(--cyber-panel-dark); padding:12px; border:2px solid var(--cyber-border);">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:0.86rem; background:var(--cyber-panel-dark); padding:16px; border:2px solid var(--cyber-border);">
             <div><strong style="color:var(--cyber-cyan);">TEMPORAL ANCHOR:</strong> ${escapeHtml(fact.temporal_context || 'Unspecified')}</div>
             <div><strong style="color:var(--cyber-cyan);">ACCOUNTING SCOPE:</strong> ${escapeHtml(fact.scope_context || 'Standard')}</div>
             <div><strong style="color:var(--cyber-primary);">FACT RECORD ID:</strong> <code>${escapeHtml(fact.id)}</code></div>
@@ -639,190 +839,6 @@ async function uploadFiles(fileList) {
         showToast('UPLOAD FAILED: ' + err.message);
         if (progBox) progBox.style.display = 'none';
     }
-}
-
-// ==========================================================================
-// CYBER KNOWLEDGE GRAPH (Neon Obsidian Layout)
-// ==========================================================================
-async function initKnowledgeGraph() {
-    const canvas = document.getElementById('graph-canvas');
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    canvas.width = canvas.parentElement.clientWidth || 800;
-    canvas.height = canvas.parentElement.clientHeight || 600;
-
-    try {
-        const res = await fetch('/api/graph');
-        const data = await res.json();
-
-        const w = canvas.width;
-        const h = canvas.height;
-
-        // Cap graph node rendering to top 80 most connected nodes for instant performance
-        const nodesToRender = data.nodes.slice(0, 80);
-        const nodeIds = new Set(nodesToRender.map(n => n.id));
-
-        graphNodes = nodesToRender.map((n, i) => {
-            const angle = (i / nodesToRender.length) * 2 * Math.PI;
-            const radius = n.type === 'document' ? Math.min(w,h) * 0.20 : 
-                          (n.type === 'entity' ? Math.min(w,h) * 0.32 : Math.min(w,h) * 0.44);
-            return {
-                ...n,
-                x: w/2 + radius * Math.cos(angle) + (Math.sin(i * 3) * 20),
-                y: h/2 + radius * Math.sin(angle) + (Math.cos(i * 3) * 20),
-                r: n.type === 'document' ? 14 : (n.type === 'entity' ? 10 : 6),
-                color: n.type === 'document' ? '#FFE600' : (n.type === 'entity' ? '#00E0FF' : '#BD00FF')
-            };
-        });
-
-        graphEdges = data.edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
-
-        setupCanvasInteractions(canvas);
-        drawGraph(ctx, canvas);
-        isGraphInitialized = true;
-    } catch (err) {
-        console.error('Error loading graph:', err);
-    }
-}
-
-function drawGraph(ctx, canvas) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Background Cyber Grid
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-    ctx.lineWidth = 1;
-    const gridSize = 40;
-    for (let x = 0; x < canvas.width; x += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-    }
-    for (let y = 0; y < canvas.height; y += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-    }
-
-    // Edges
-    for (let i = 0; i < graphEdges.length; i++) {
-        const e = graphEdges[i];
-        const src = graphNodes.find(n => n.id === e.source);
-        const tgt = graphNodes.find(n => n.id === e.target);
-        if (src && tgt) {
-            ctx.beginPath();
-            ctx.moveTo(src.x, src.y);
-            ctx.lineTo(tgt.x, tgt.y);
-
-            if (e.relationship_type === 'CORROBORATED') {
-                ctx.strokeStyle = 'rgba(16, 185, 129, 0.6)';
-                ctx.lineWidth = 2;
-            } else if (e.relationship_type === 'CONTRADICTION') {
-                ctx.strokeStyle = 'rgba(244, 63, 94, 0.8)';
-                ctx.lineWidth = 2.5;
-            } else if (e.relationship_type === 'APPARENT_CONTRADICTION_EXPLAINED') {
-                ctx.strokeStyle = 'rgba(245, 158, 11, 0.7)';
-                ctx.lineWidth = 2;
-            } else {
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-                ctx.lineWidth = 1;
-            }
-            ctx.stroke();
-        }
-    }
-
-    // Nodes
-    for (let i = 0; i < graphNodes.length; i++) {
-        const n = graphNodes[i];
-        const isHovered = hoveredNode && hoveredNode.id === n.id;
-
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, isHovered ? n.r + 4 : n.r, 0, 2 * Math.PI);
-        ctx.fillStyle = n.color;
-        ctx.shadowColor = n.color;
-        ctx.shadowBlur = isHovered ? 12 : 4;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#000000';
-        ctx.stroke();
-
-        // Node Labels for Documents and Entities
-        if (n.type === 'document' || n.type === 'entity' || isHovered) {
-            ctx.font = 'bold 10px JetBrains Mono, monospace';
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillText(n.label || n.id, n.x + n.r + 4, n.y + 3);
-        }
-    }
-}
-
-function setupCanvasInteractions(canvas) {
-    const ctx = canvas.getContext('2d');
-    const tooltip = document.getElementById('graph-tooltip');
-
-    canvas.onmousedown = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
-
-        for (let i = 0; i < graphNodes.length; i++) {
-            const n = graphNodes[i];
-            const dist = Math.hypot(n.x - mx, n.y - my);
-            if (dist <= n.r + 4) {
-                isDragging = true;
-                draggedNode = n;
-                break;
-            }
-        }
-    };
-
-    window.onmousemove = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
-
-        if (isDragging && draggedNode) {
-            draggedNode.x = mx;
-            draggedNode.y = my;
-            drawGraph(ctx, canvas);
-            return;
-        }
-
-        let found = null;
-        for (let i = 0; i < graphNodes.length; i++) {
-            const n = graphNodes[i];
-            const dist = Math.hypot(n.x - mx, n.y - my);
-            if (dist <= n.r + 4) {
-                found = n;
-                break;
-            }
-        }
-
-        if (found !== hoveredNode) {
-            hoveredNode = found;
-            drawGraph(ctx, canvas);
-
-            if (hoveredNode && tooltip) {
-                tooltip.style.display = 'block';
-                tooltip.style.left = (mx + 12) + 'px';
-                tooltip.style.top = (my + 12) + 'px';
-                tooltip.innerHTML = `
-                    <div style="color:var(--cyber-cyan);">${hoveredNode.type.toUpperCase()}</div>
-                    <div>${hoveredNode.label || hoveredNode.id}</div>
-                `;
-            } else if (tooltip) {
-                tooltip.style.display = 'none';
-            }
-        }
-    };
-
-    window.onmouseup = () => {
-        isDragging = false;
-        draggedNode = null;
-    };
 }
 
 // ==========================================================================

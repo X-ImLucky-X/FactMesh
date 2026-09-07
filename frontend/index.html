@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FACT KNOWLEDGE LAYER // ARCHITECTURAL COMMAND CENTER</title>
+    <title>FACT KNOWLEDGE LAYER // 3D ARCHITECTURAL COMMAND CENTER</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <!-- Standalone 3D Force Graph & Three.js Bundle (RepoWhisper 3D Engine) -->
+    <script src="/static/3d-force-graph.min.js"></script>
 </head>
 <body>
     <!-- Retro Dot Background Animation Layer -->
@@ -18,7 +20,7 @@
         <header class="top-navbar">
             <div class="brand-group">
                 <div class="brand-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                         <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                         <line x1="12" y1="22.08" x2="12" y2="12"></line>
@@ -64,7 +66,7 @@
                     <span class="kpi-val" id="facts-count-badge">0</span>
                     <span class="kpi-pill pill-cyan">VERIFIED</span>
                 </div>
-                <div class="kpi-subtext">NORMALIZED WITH EXACT CITATIONS</div>
+                <div class="kpi-subtext">NORMALIZED WITH EXACT PHYSICAL CITATIONS</div>
             </div>
 
             <div class="kpi-card kpi-purple">
@@ -73,7 +75,7 @@
                     <span class="kpi-val" id="rels-count-badge">0</span>
                     <span class="kpi-pill pill-purple">RECONCILED</span>
                 </div>
-                <div class="kpi-subtext">DETERMINISTIC GRAPH EDGES</div>
+                <div class="kpi-subtext">DETERMINISTIC 3D GRAPH EDGES</div>
             </div>
 
             <div class="kpi-card kpi-emerald">
@@ -111,7 +113,7 @@
             </button>
             <button class="command-tab" data-tab="graph-tab">
                 <span class="tab-index">04 //</span>
-                <span class="tab-label">KNOWLEDGE GRAPH</span>
+                <span class="tab-label">3D KNOWLEDGE GRAPH</span>
             </button>
             <button class="command-tab" data-tab="query-tab">
                 <span class="tab-index">05 //</span>
@@ -131,7 +133,7 @@
                 <div class="pane-header-row">
                     <div>
                         <h2 class="section-title">THE FOUR CORE ASSIGNMENT CASES</h2>
-                        <p class="section-subtitle">Cross-document verification: Corroboration, Genuine Contradiction, Contextual Resolution, and Extraction Remediation.</p>
+                        <p class="section-subtitle">Grounded cross-document verification: Corroboration, Direct Contradiction, Apparent Contextual Resolution, and Failure Recovery.</p>
                     </div>
                     <div class="dataset-control-box">
                         <label class="input-label">DATASET SCOPE:</label>
@@ -156,7 +158,7 @@
                 <div class="pane-header-row">
                     <div>
                         <h2 class="section-title">EXTRACTED FACT DATABASE</h2>
-                        <p class="section-subtitle">Every fact is grounded with exact physical page offsets, verbatim quotes, and confidence metrics.</p>
+                        <p class="section-subtitle">Every fact is grounded with physical page citations, surrounding verbatim quotes, and confidence scores.</p>
                     </div>
                     <div class="facts-filter-cluster">
                         <input type="text" id="facts-search-input" class="cyber-input" placeholder="SEARCH FACTS, ENTITIES, VALUES..." oninput="filterFacts()">
@@ -173,7 +175,7 @@
                 </div>
 
                 <div class="cyber-panel table-panel">
-                    <div class="table-responsive">
+                    <div class="table-responsive custom-scrollbar">
                         <table class="cyber-table">
                             <thead>
                                 <tr>
@@ -205,7 +207,7 @@
                 <div class="pane-header-row">
                     <div>
                         <h2 class="section-title">CROSS-DOCUMENT RECONCILIATION MATRIX</h2>
-                        <p class="section-subtitle">Automated comparison mapping corroborating records, conflicting figures, and context-dependent variances.</p>
+                        <p class="section-subtitle">Automated comparative mapping showing corroborating records, conflicting figures, and context-dependent variances.</p>
                     </div>
                     <div class="rel-filter-cluster">
                         <button class="filter-pill active" onclick="filterRelationships('ALL', this)">ALL RELATIONS</button>
@@ -220,26 +222,56 @@
                 </div>
             </section>
 
-            <!-- TAB 4: Knowledge Graph -->
+            <!-- TAB 4: 3D Knowledge Graph -->
             <section id="graph-tab" class="tab-pane">
-                <div class="cyber-panel graph-panel">
+                <div class="cyber-panel graph-panel-3d">
                     <div class="graph-top-hud">
                         <div class="graph-legend">
-                            <span class="legend-chip chip-doc"><span class="chip-dot dot-yellow"></span> DOCUMENT</span>
-                            <span class="legend-chip chip-entity"><span class="chip-dot dot-cyan"></span> ENTITY</span>
-                            <span class="legend-chip chip-fact"><span class="chip-dot dot-purple"></span> FACT</span>
-                            <span class="legend-chip chip-corroborated"><span class="chip-dot dot-emerald"></span> CORROBORATED</span>
-                            <span class="legend-chip chip-contradiction"><span class="chip-dot dot-rose"></span> CONTRADICTION</span>
+                            <span class="legend-chip"><span class="chip-dot dot-yellow"></span> DOCUMENT</span>
+                            <span class="legend-chip"><span class="chip-dot dot-cyan"></span> ENTITY</span>
+                            <span class="legend-chip"><span class="chip-dot dot-purple"></span> FACT</span>
+                            <span class="legend-chip"><span class="chip-dot dot-emerald"></span> CORROBORATED</span>
+                            <span class="legend-chip"><span class="chip-dot dot-rose"></span> CONTRADICTION</span>
+                            <span class="legend-chip"><span class="chip-dot dot-amber"></span> CONTEXT RESOLVED</span>
                         </div>
                         <div class="graph-actions">
-                            <button class="cyber-btn btn-cyan btn-sm" onclick="initKnowledgeGraph()">
-                                <span>RESET FORCE LAYOUT</span>
+                            <button class="cyber-btn btn-cyan btn-sm" onclick="resetGraphCamera()">
+                                <span>🎥 RESET CAMERA</span>
+                            </button>
+                            <button class="cyber-btn btn-purple btn-sm" id="btn-toggle-rotate" onclick="toggleGraphAutoRotate()">
+                                <span>🔄 AUTO-ROTATE: OFF</span>
+                            </button>
+                            <button class="cyber-btn btn-black btn-sm" onclick="reheatGraphSimulation()">
+                                <span>⚡ RE-LAYOUT</span>
                             </button>
                         </div>
                     </div>
-                    <div class="canvas-viewport" id="canvas-container">
-                        <canvas id="graph-canvas"></canvas>
-                        <div id="graph-tooltip" class="cyber-tooltip"></div>
+
+                    <!-- 3D Graph WebGL Viewport Container -->
+                    <div class="graph-3d-viewport" id="graph-3d-container">
+                        <div id="graph-3d-canvas" class="graph-3d-canvas-wrap"></div>
+                        
+                        <!-- HUD Interaction Hint -->
+                        <div class="graph-hud-hint">
+                            <span>[LEFT CLICK + DRAG] 3D ROTATE</span> // 
+                            <span>[RIGHT CLICK + DRAG] PAN</span> // 
+                            <span>[SCROLL] ZOOM</span> // 
+                            <span>[CLICK NODE] INSPECT DETAILS</span>
+                        </div>
+
+                        <!-- RepoWhisper-Style Sliding Node Inspector Drawer -->
+                        <div id="node-inspector-drawer" class="node-inspector-drawer" style="display: none;">
+                            <div class="drawer-header">
+                                <div class="drawer-title-box">
+                                    <span class="drawer-type-badge" id="drawer-node-type">ENTITY</span>
+                                    <h3 class="drawer-title" id="drawer-node-title">Node Title</h3>
+                                </div>
+                                <button class="drawer-close-btn" onclick="closeNodeInspector()">[✕ CLOSE]</button>
+                            </div>
+                            <div class="drawer-body custom-scrollbar" id="drawer-node-body">
+                                <!-- Loaded dynamically via app.js -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -269,7 +301,7 @@
                         <div class="qa-output-section">
                             <div class="output-header">
                                 <span class="badge-tag tag-cyan">SYNTHESIZED ANSWER</span>
-                                <span class="text-dim text-xs">DETERMINISTIC AUDIT PROVENANCE</span>
+                                <span class="text-dim text-sm">DETERMINISTIC EVIDENCE AUDIT</span>
                             </div>
                             <div id="qa-answer-text" class="qa-answer-block"></div>
                         </div>
@@ -289,12 +321,12 @@
                 <div class="upload-grid-layout">
                     <div class="cyber-panel upload-card">
                         <h3 class="card-heading text-cyan">INGESTION PIPELINE // UPLOAD NEW DISCLOSURES</h3>
-                        <p class="card-caption">Upload corporate filings, prospectuses, or macro reports. The system will parse text streams, extract grounded facts, and reconcile against all existing data.</p>
+                        <p class="card-caption">Upload corporate filings, prospectuses, or macro reports. The system will parse text streams, extract grounded facts, and reconcile against all existing knowledge.</p>
                         
                         <div class="cyber-dropzone" id="pdf-dropzone">
                             <div class="dropzone-inner">
                                 <div class="drop-icon">
-                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#00E0FF" stroke-width="2">
+                                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#00E0FF" stroke-width="2">
                                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                         <polyline points="14 2 14 8 20 8"></polyline>
                                         <line x1="12" y1="18" x2="12" y2="12"></line>
@@ -302,7 +334,7 @@
                                     </svg>
                                 </div>
                                 <div class="drop-text">DRAG & DROP PDF FILES HERE</div>
-                                <div class="drop-subtext">OR CLICK BELOW TO INITIATE SYSTEM BROWSE</div>
+                                <div class="drop-subtext">OR CLICK BELOW TO SELECT LOCAL FILES</div>
                                 <input type="file" id="pdf-file-input" multiple accept=".pdf" style="display:none;" onchange="handleFileSelection(event)">
                                 <button class="cyber-btn btn-cyan btn-sm" onclick="document.getElementById('pdf-file-input').click()">SELECT LOCAL PDFS</button>
                             </div>
