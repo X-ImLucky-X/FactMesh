@@ -3,266 +3,349 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fact Knowledge Layer | Cross-Document Intelligence</title>
+    <title>FACT KNOWLEDGE LAYER // ARCHITECTURAL COMMAND CENTER</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;0,800;1,400&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar">
-            <div class="brand">
-                <div class="brand-logo">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                        <polyline points="2 17 12 22 22 17"></polyline>
-                        <polyline points="2 12 12 17 22 12"></polyline>
+    <!-- Retro Dot Background Animation Layer -->
+    <div class="retro-dot-bg"></div>
+
+    <div class="command-center">
+        <!-- Top Navigation Bar (RepoWhisper Synthetix Style) -->
+        <header class="top-navbar">
+            <div class="brand-group">
+                <div class="brand-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
                     </svg>
                 </div>
-                <div>
-                    <h1 class="brand-title">FactLayer</h1>
-                    <span class="brand-subtitle">Knowledge Intelligence</span>
+                <div class="brand-text">
+                    <div class="brand-title">FACT KNOWLEDGE LAYER</div>
+                    <div class="brand-subtitle">AI ARCHITECTURAL COMMAND CENTER // CROSS-DOC INTELLIGENCE</div>
                 </div>
             </div>
 
-            <!-- Ingest Quick Actions -->
-            <div class="sidebar-section">
-                <label class="section-label">STARTER DATASETS</label>
-                <div class="quick-btn-group">
-                    <button class="btn btn-secondary btn-block" onclick="loadDataset('delhivery')">
-                        <span class="icon">📦</span> Load Delhivery
-                    </button>
-                    <button class="btn btn-secondary btn-block" onclick="loadDataset('india-macroeconomy')">
-                        <span class="icon">📈</span> Load Macroeconomy
-                    </button>
-                </div>
+            <!-- System Online Status Indicator -->
+            <div class="system-status-indicator">
+                <span class="ping-container">
+                    <span class="ping-beacon"></span>
+                    <span class="ping-dot"></span>
+                </span>
+                <span id="system-status-text">SYSTEM ONLINE: 8000</span>
             </div>
 
-            <!-- Navigation Links -->
-            <nav class="nav-menu">
-                <label class="section-label">EXPLORE</label>
-                <button class="nav-item active" data-tab="cases-tab">
-                    <span class="nav-icon">🎯</span>
-                    <span>Four Cases Showcase</span>
+            <!-- Header Quick Actions -->
+            <div class="navbar-actions">
+                <button class="cyber-btn btn-cyan" onclick="loadDataset('delhivery')">
+                    <span>📦 LOAD DELHIVERY</span>
                 </button>
-                <button class="nav-item" data-tab="facts-tab">
-                    <span class="nav-icon">📑</span>
-                    <span>Fact Explorer</span>
-                    <span class="badge" id="facts-count-badge">0</span>
+                <button class="cyber-btn btn-purple" onclick="loadDataset('india-macroeconomy')">
+                    <span>📈 LOAD MACRO</span>
                 </button>
-                <button class="nav-item" data-tab="relationships-tab">
-                    <span class="nav-icon">⚖️</span>
-                    <span>Cross-Doc Relations</span>
-                    <span class="badge" id="rels-count-badge">0</span>
+                <button class="cyber-btn btn-emerald" onclick="reconcileAll()">
+                    <span>🔄 RECONCILE</span>
                 </button>
-                <button class="nav-item" data-tab="graph-tab">
-                    <span class="nav-icon">🕸️</span>
-                    <span>Knowledge Graph</span>
-                </button>
-                <button class="nav-item" data-tab="query-tab">
-                    <span class="nav-icon">🔍</span>
-                    <span>Semantic Q&A</span>
-                </button>
-                <button class="nav-item" data-tab="upload-tab">
-                    <span class="nav-icon">📤</span>
-                    <span>Upload & Ingest</span>
-                </button>
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="status-indicator">
-                    <span class="status-dot"></span>
-                    <span id="system-status-text">System Ready</span>
-                </div>
-                <div class="api-links">
-                    <a href="/docs" target="_blank" class="docs-link">API Docs (Swagger) →</a>
-                </div>
+                <a href="/docs" target="_blank" class="cyber-btn btn-black">
+                    <span>API DOCS →</span>
+                </a>
             </div>
-        </aside>
+        </header>
 
-        <!-- Main Content Area -->
-        <main class="main-content">
-            <!-- Top Bar Header -->
-            <header class="topbar">
-                <div class="header-info">
-                    <h2 id="page-title">Four Cases Showcase</h2>
-                    <p class="text-muted" id="page-subtitle">Demonstration of cross-document corroboration, contradiction, contextual reconciliation, and failure recovery.</p>
+        <!-- KPI Scorecard HUD / Dev Control Bar -->
+        <section class="kpi-scorecard-row">
+            <div class="kpi-card kpi-cyan">
+                <div class="kpi-label">INGESTED FACTS</div>
+                <div class="kpi-val-row">
+                    <span class="kpi-val" id="facts-count-badge">0</span>
+                    <span class="kpi-pill pill-cyan">VERIFIED</span>
                 </div>
-                <div class="topbar-actions">
-                    <select id="dataset-switcher" class="select-input" onchange="switchDatasetShowcase(this.value)">
-                        <option value="dynamic">⚡ Live Dynamic Discovery (From Ingested Facts)</option>
-                        <option value="delhivery">Dataset: Delhivery Filings (Curated)</option>
-                        <option value="india-macroeconomy">Dataset: India Macroeconomy (Curated)</option>
-                    </select>
-                    <button class="btn btn-outline" onclick="reconcileAll()">
-                        <span>🔄 Reconcile</span>
-                    </button>
-                </div>
-            </header>
+                <div class="kpi-subtext">NORMALIZED WITH EXACT CITATIONS</div>
+            </div>
 
+            <div class="kpi-card kpi-purple">
+                <div class="kpi-label">CROSS-DOC RELATIONS</div>
+                <div class="kpi-val-row">
+                    <span class="kpi-val" id="rels-count-badge">0</span>
+                    <span class="kpi-pill pill-purple">RECONCILED</span>
+                </div>
+                <div class="kpi-subtext">DETERMINISTIC GRAPH EDGES</div>
+            </div>
+
+            <div class="kpi-card kpi-emerald">
+                <div class="kpi-label">CONTEXT RESOLVED</div>
+                <div class="kpi-val-row">
+                    <span class="kpi-val" id="kpi-apparent-count">44</span>
+                    <span class="kpi-pill pill-emerald">EXPLAINED</span>
+                </div>
+                <div class="kpi-subtext">TEMPORAL & ACCOUNTING NUANCE</div>
+            </div>
+
+            <div class="kpi-card kpi-rose">
+                <div class="kpi-label">CONTRADICTIONS FLAGGED</div>
+                <div class="kpi-val-row">
+                    <span class="kpi-val" id="kpi-contradiction-count">41</span>
+                    <span class="kpi-pill pill-rose">PRIORITY</span>
+                </div>
+                <div class="kpi-subtext">GENUINE NUMERICAL DISCREPANCIES</div>
+            </div>
+        </section>
+
+        <!-- Tab Navigation Bar (RepoWhisper Repo Page Style) -->
+        <nav class="command-tab-bar">
+            <button class="command-tab active" data-tab="cases-tab">
+                <span class="tab-index">01 //</span>
+                <span class="tab-label">FOUR CASES REVIEW</span>
+            </button>
+            <button class="command-tab" data-tab="facts-tab">
+                <span class="tab-index">02 //</span>
+                <span class="tab-label">FACT INVENTORY</span>
+            </button>
+            <button class="command-tab" data-tab="relationships-tab">
+                <span class="tab-index">03 //</span>
+                <span class="tab-label">CROSS-DOC RELATIONS</span>
+            </button>
+            <button class="command-tab" data-tab="graph-tab">
+                <span class="tab-index">04 //</span>
+                <span class="tab-label">KNOWLEDGE GRAPH</span>
+            </button>
+            <button class="command-tab" data-tab="query-tab">
+                <span class="tab-index">05 //</span>
+                <span class="tab-label">SEMANTIC Q&A</span>
+            </button>
+            <button class="command-tab" data-tab="upload-tab">
+                <span class="tab-index">06 //</span>
+                <span class="tab-label">UPLOAD SEQUENCE</span>
+            </button>
+        </nav>
+
+        <!-- Tab Panes Container -->
+        <main class="command-viewport">
+            
             <!-- TAB 1: Four Cases Showcase -->
             <section id="cases-tab" class="tab-pane active">
+                <div class="pane-header-row">
+                    <div>
+                        <h2 class="section-title">THE FOUR CORE ASSIGNMENT CASES</h2>
+                        <p class="section-subtitle">Cross-document verification: Corroboration, Genuine Contradiction, Contextual Resolution, and Extraction Remediation.</p>
+                    </div>
+                    <div class="dataset-control-box">
+                        <label class="input-label">DATASET SCOPE:</label>
+                        <select id="dataset-switcher" class="cyber-select" onchange="switchDatasetShowcase(this.value)">
+                            <option value="dynamic">⚡ LIVE DYNAMIC DISCOVERY (Current Ingested PDFs)</option>
+                            <option value="delhivery">📦 DELHIVERY PROSPECTUS & UPDATES (Curated)</option>
+                            <option value="india-macroeconomy">📈 INDIA MACROECONOMY (Curated)</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="cases-container" id="cases-cards-wrapper">
-                    <!-- Loaded dynamically via app.js -->
-                    <div class="loading-spinner">Loading showcase cases...</div>
+                    <div class="cyber-loading">
+                        <div class="scanner-line"></div>
+                        INITIALIZING SHOWCASE CLASSIFICATION SEQUENCE...
+                    </div>
                 </div>
             </section>
 
-            <!-- TAB 2: Fact Explorer -->
+            <!-- TAB 2: Fact Inventory -->
             <section id="facts-tab" class="tab-pane">
-                <div class="filter-bar">
-                    <div class="search-box">
-                        <input type="text" id="facts-search-input" placeholder="Search facts, entities, attributes, values..." oninput="filterFacts()">
+                <div class="pane-header-row">
+                    <div>
+                        <h2 class="section-title">EXTRACTED FACT DATABASE</h2>
+                        <p class="section-subtitle">Every fact is grounded with exact physical page offsets, verbatim quotes, and confidence metrics.</p>
                     </div>
-                    <div class="filter-controls">
-                        <select id="facts-doc-filter" class="select-input" onchange="filterFacts()">
-                            <option value="">All Documents</option>
+                    <div class="facts-filter-cluster">
+                        <input type="text" id="facts-search-input" class="cyber-input" placeholder="SEARCH FACTS, ENTITIES, VALUES..." oninput="filterFacts()">
+                        <select id="facts-doc-filter" class="cyber-select" onchange="filterFacts()">
+                            <option value="">ALL DOCUMENTS</option>
                         </select>
-                        <select id="facts-type-filter" class="select-input" onchange="filterFacts()">
-                            <option value="">All Fact Types</option>
-                            <option value="NUMERICAL">Numerical</option>
-                            <option value="CATEGORICAL">Categorical</option>
-                            <option value="EXISTENTIAL">Existential / M&A</option>
+                        <select id="facts-type-filter" class="cyber-select" onchange="filterFacts()">
+                            <option value="">ALL FACT TYPES</option>
+                            <option value="NUMERICAL">NUMERICAL</option>
+                            <option value="CATEGORICAL">CATEGORICAL</option>
+                            <option value="EXISTENTIAL">EXISTENTIAL / M&A</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="table-card">
+                <div class="cyber-panel table-panel">
                     <div class="table-responsive">
-                        <table class="facts-table">
+                        <table class="cyber-table">
                             <thead>
                                 <tr>
-                                    <th>Subject / Entity</th>
-                                    <th>Attribute</th>
-                                    <th>Extracted Value</th>
-                                    <th>Period / Scope</th>
-                                    <th>Source & Page</th>
-                                    <th>Evidence Snippet</th>
-                                    <th>Action</th>
+                                    <th>ENTITY / SUBJECT</th>
+                                    <th>ATTRIBUTE</th>
+                                    <th>RAW VALUE</th>
+                                    <th>TEMPORAL / SCOPE</th>
+                                    <th>SOURCE & PAGE</th>
+                                    <th>VERBATIM PROVENANCE</th>
+                                    <th>ACTION</th>
                                 </tr>
                             </thead>
                             <tbody id="facts-table-body">
                                 <tr>
-                                    <td colspan="7" class="text-center">No facts loaded yet. Click "Load Delhivery" or "Upload & Ingest" to start.</td>
+                                    <td colspan="7" class="empty-state-cell">NO FACTS INGESTED. LOAD A DATASET OR UPLOAD A PDF TO BEGIN SEQUENCE.</td>
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div id="facts-pagination-footer" class="pagination-footer" style="display:none;">
+                        <span id="facts-counter-text" class="pagination-label">Showing 50 of 197 facts</span>
+                        <button class="cyber-btn btn-cyan btn-sm" onclick="loadMoreFacts()">LOAD MORE (+50)</button>
                     </div>
                 </div>
             </section>
 
             <!-- TAB 3: Cross-Document Relationships -->
             <section id="relationships-tab" class="tab-pane">
-                <div class="rel-filter-bar">
-                    <button class="filter-pill active" onclick="filterRelationships('ALL', this)">All Relations</button>
-                    <button class="filter-pill pill-corroborated" onclick="filterRelationships('CORROBORATED', this)">Corroborations</button>
-                    <button class="filter-pill pill-contradiction" onclick="filterRelationships('CONTRADICTION', this)">Contradictions</button>
-                    <button class="filter-pill pill-apparent" onclick="filterRelationships('APPARENT_CONTRADICTION_EXPLAINED', this)">Contextually Explained</button>
+                <div class="pane-header-row">
+                    <div>
+                        <h2 class="section-title">CROSS-DOCUMENT RECONCILIATION MATRIX</h2>
+                        <p class="section-subtitle">Automated comparison mapping corroborating records, conflicting figures, and context-dependent variances.</p>
+                    </div>
+                    <div class="rel-filter-cluster">
+                        <button class="filter-pill active" onclick="filterRelationships('ALL', this)">ALL RELATIONS</button>
+                        <button class="filter-pill pill-corroborated" onclick="filterRelationships('CORROBORATED', this)">CORROBORATIONS</button>
+                        <button class="filter-pill pill-contradiction" onclick="filterRelationships('CONTRADICTION', this)">CONTRADICTIONS</button>
+                        <button class="filter-pill pill-apparent" onclick="filterRelationships('APPARENT_CONTRADICTION_EXPLAINED', this)">CONTEXT RESOLVED</button>
+                    </div>
                 </div>
 
                 <div class="relationships-grid" id="relationships-grid">
-                    <div class="loading-spinner">No cross-document relationships to display yet.</div>
+                    <div class="cyber-loading">SCANNING CROSS-DOCUMENT EDGES...</div>
                 </div>
             </section>
 
             <!-- TAB 4: Knowledge Graph -->
             <section id="graph-tab" class="tab-pane">
-                <div class="graph-card">
-                    <div class="graph-controls">
-                        <div class="legend">
-                            <span class="legend-item"><span class="legend-dot dot-doc"></span> Document</span>
-                            <span class="legend-item"><span class="legend-dot dot-entity"></span> Entity</span>
-                            <span class="legend-item"><span class="legend-dot dot-fact"></span> Fact</span>
-                            <span class="legend-item"><span class="legend-dot dot-rel"></span> Cross-Link</span>
+                <div class="cyber-panel graph-panel">
+                    <div class="graph-top-hud">
+                        <div class="graph-legend">
+                            <span class="legend-chip chip-doc"><span class="chip-dot dot-yellow"></span> DOCUMENT</span>
+                            <span class="legend-chip chip-entity"><span class="chip-dot dot-cyan"></span> ENTITY</span>
+                            <span class="legend-chip chip-fact"><span class="chip-dot dot-purple"></span> FACT</span>
+                            <span class="legend-chip chip-corroborated"><span class="chip-dot dot-emerald"></span> CORROBORATED</span>
+                            <span class="legend-chip chip-contradiction"><span class="chip-dot dot-rose"></span> CONTRADICTION</span>
                         </div>
-                        <button class="btn btn-sm btn-outline" onclick="initKnowledgeGraph()">Reset Layout</button>
+                        <div class="graph-actions">
+                            <button class="cyber-btn btn-cyan btn-sm" onclick="initKnowledgeGraph()">
+                                <span>RESET FORCE LAYOUT</span>
+                            </button>
+                        </div>
                     </div>
-                    <div class="canvas-wrapper">
+                    <div class="canvas-viewport" id="canvas-container">
                         <canvas id="graph-canvas"></canvas>
-                        <div id="graph-tooltip" class="graph-tooltip"></div>
+                        <div id="graph-tooltip" class="cyber-tooltip"></div>
                     </div>
                 </div>
             </section>
 
             <!-- TAB 5: Semantic Q&A -->
             <section id="query-tab" class="tab-pane">
-                <div class="qa-container">
-                    <div class="qa-search-card">
-                        <h3>Ask the Fact Knowledge Layer</h3>
-                        <p class="text-muted">Inquire about revenue, volumes, key personnel, GDP growth, or cross-document comparisons.</p>
-                        <div class="qa-input-group">
-                            <input type="text" id="qa-input" placeholder="e.g. What is the revenue growth between FY22 and FY24? Or who is the CEO?" onkeydown="if(event.key==='Enter') executeQuery()">
-                            <button class="btn btn-primary" onclick="executeQuery()">Ask Intelligence Layer</button>
+                <div class="qa-layout">
+                    <div class="cyber-panel qa-input-card">
+                        <h3 class="card-heading text-cyan">COMMAND LINE // ASK THE INTELLIGENCE LAYER</h3>
+                        <p class="card-caption">Query any financial metric, leadership appointment, cross-document comparison, or macro indicator.</p>
+                        
+                        <div class="qa-search-group">
+                            <input type="text" id="qa-input" class="cyber-input terminal-input" placeholder="ENTER INQUIRY... (e.g. Compare revenue across DRHP and Industry Report)" onkeydown="if(event.key==='Enter') executeQuery()">
+                            <button class="cyber-btn btn-purple" onclick="executeQuery()">EXECUTE QUERY</button>
                         </div>
-                        <div class="sample-queries">
-                            <span>Try:</span>
-                            <a href="javascript:void(0)" onclick="setQuery('What is the revenue and EBITDA of Delhivery in FY24?')">FY24 Revenue & EBITDA</a>
-                            <a href="javascript:void(0)" onclick="setQuery('Who is the Managing Director and CEO?')">Executive Leadership</a>
-                            <a href="javascript:void(0)" onclick="setQuery('What is India GDP growth rate in FY24?')">India GDP Growth</a>
-                            <a href="javascript:void(0)" onclick="setQuery('Explain the difference in revenue across documents')">Revenue Reconciliation</a>
+
+                        <div class="sample-queries-cluster">
+                            <span class="query-prompt">RECOMMENDED SEQUENCES:</span>
+                            <button class="chip-query" onclick="setQuery('What is the revenue and EBITDA of Delhivery in FY24?')">FY24 REVENUE & EBITDA</button>
+                            <button class="chip-query" onclick="setQuery('Who is the Managing Director and CEO?')">EXECUTIVE LEADERSHIP</button>
+                            <button class="chip-query" onclick="setQuery('What is India GDP growth rate in FY24?')">INDIA GDP GROWTH</button>
+                            <button class="chip-query" onclick="setQuery('Explain the difference in revenue across documents')">REVENUE RECONCILIATION</button>
                         </div>
                     </div>
 
-                    <div id="qa-results-container" class="qa-results-card" style="display: none;">
-                        <div class="qa-answer-box">
-                            <h4 class="answer-heading">Synthesized Answer & Reconciliation</h4>
-                            <div id="qa-answer-text" class="qa-answer-content"></div>
+                    <div id="qa-results-container" class="cyber-panel qa-results-card" style="display: none;">
+                        <div class="qa-output-section">
+                            <div class="output-header">
+                                <span class="badge-tag tag-cyan">SYNTHESIZED ANSWER</span>
+                                <span class="text-dim text-xs">DETERMINISTIC AUDIT PROVENANCE</span>
+                            </div>
+                            <div id="qa-answer-text" class="qa-answer-block"></div>
                         </div>
-                        <div class="qa-sources-box">
-                            <h4>Supporting Grounded Evidence</h4>
-                            <div id="qa-sources-list" class="sources-list"></div>
+
+                        <div class="qa-sources-section">
+                            <div class="output-header">
+                                <span class="badge-tag tag-purple">SUPPORTING EVIDENCE SNIPPETS</span>
+                            </div>
+                            <div id="qa-sources-list" class="sources-stack"></div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- TAB 6: Upload & Ingestion -->
+            <!-- TAB 6: Upload Sequence -->
             <section id="upload-tab" class="tab-pane">
-                <div class="upload-grid">
-                    <div class="upload-dropzone-card">
-                        <h3>Upload Custom PDFs</h3>
-                        <p class="text-muted">Drag & drop new PDFs to incrementally expand the Fact Knowledge Layer.</p>
-                        <div class="dropzone" id="pdf-dropzone">
-                            <div class="dropzone-content">
-                                <span class="upload-icon">📁</span>
-                                <p><strong>Choose PDF files</strong> or drag them here</p>
-                                <span class="file-limits">Supports multi-page corporate filings, reports & research papers</span>
+                <div class="upload-grid-layout">
+                    <div class="cyber-panel upload-card">
+                        <h3 class="card-heading text-cyan">INGESTION PIPELINE // UPLOAD NEW DISCLOSURES</h3>
+                        <p class="card-caption">Upload corporate filings, prospectuses, or macro reports. The system will parse text streams, extract grounded facts, and reconcile against all existing data.</p>
+                        
+                        <div class="cyber-dropzone" id="pdf-dropzone">
+                            <div class="dropzone-inner">
+                                <div class="drop-icon">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#00E0FF" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="12" y1="18" x2="12" y2="12"></line>
+                                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                                    </svg>
+                                </div>
+                                <div class="drop-text">DRAG & DROP PDF FILES HERE</div>
+                                <div class="drop-subtext">OR CLICK BELOW TO INITIATE SYSTEM BROWSE</div>
                                 <input type="file" id="pdf-file-input" multiple accept=".pdf" style="display:none;" onchange="handleFileSelection(event)">
-                                <button class="btn btn-primary btn-sm" onclick="document.getElementById('pdf-file-input').click()">Browse Files</button>
+                                <button class="cyber-btn btn-cyan btn-sm" onclick="document.getElementById('pdf-file-input').click()">SELECT LOCAL PDFS</button>
                             </div>
                         </div>
-                        <div id="upload-progress-container" style="display:none;" class="progress-box">
-                            <div class="progress-bar-bg"><div id="upload-progress-bar" class="progress-bar-fill"></div></div>
-                            <span id="upload-progress-text" class="text-muted text-sm">Processing documents...</span>
+
+                        <div id="upload-progress-container" style="display:none;" class="cyber-progress-box">
+                            <div class="progress-bar-track">
+                                <div id="upload-progress-bar" class="progress-bar-neon"></div>
+                            </div>
+                            <span id="upload-progress-text" class="progress-status-text">INGESTING DOCUMENTS...</span>
                         </div>
                     </div>
 
-                    <div class="ingested-docs-card">
-                        <h3>Ingested Documents</h3>
-                        <div class="docs-list" id="ingested-docs-list">
-                            <!-- Populated dynamically -->
-                            <div class="text-muted text-sm">No custom documents uploaded yet.</div>
+                    <div class="cyber-panel docs-inventory-card">
+                        <h3 class="card-heading text-purple">LOADED DOCUMENTS IN MEMORY</h3>
+                        <div class="docs-stack" id="ingested-docs-list">
+                            <div class="text-dim text-sm">NO CUSTOM DOCUMENTS IN MEMORY.</div>
                         </div>
                     </div>
                 </div>
             </section>
+
         </main>
     </div>
 
-    <!-- Evidence Inspection Modal -->
-    <div id="evidence-modal" class="modal-overlay" style="display:none;">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 id="modal-title">Evidence & Provenance Grounding</h3>
-                <button class="modal-close" onclick="closeEvidenceModal()">✕</button>
+    <!-- Evidence Provenance Modal (RepoWhisper Cyber Modal) -->
+    <div id="evidence-modal" class="modal-backdrop" style="display:none;">
+        <div class="cyber-modal-card">
+            <div class="modal-top-bar">
+                <div class="modal-title-box">
+                    <span class="modal-accent-block"></span>
+                    <h3 id="modal-title">EVIDENCE & PROVENANCE GROUNDING</h3>
+                </div>
+                <button class="modal-close-btn" onclick="closeEvidenceModal()">[✕ CLOSE]</button>
             </div>
-            <div class="modal-body" id="modal-body">
-                <!-- Loaded dynamically -->
+            <div class="modal-content-scroll custom-scrollbar" id="modal-body">
+                <!-- Populated dynamically via app.js -->
             </div>
         </div>
     </div>
+
+    <!-- Toast Notification Hub -->
+    <div id="toast-hub" class="toast-hub"></div>
 
     <script src="/static/app.js"></script>
 </body>
