@@ -1,9 +1,19 @@
-// Fact Knowledge Layer - Frontend Controller
+// Fact Knowledge Layer - Optimized Controller
 let currentDataset = 'delhivery';
 let allFacts = [];
 let allRelationships = [];
 let allDocuments = [];
 let activeRelFilter = 'ALL';
+let displayedFactsCount = 50;
+let filteredFactsList = [];
+
+// Graph State
+let graphNodes = [];
+let graphEdges = [];
+let isDragging = false;
+let draggedNode = null;
+let hoveredNode = null;
+let isGraphInitialized = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
@@ -25,7 +35,6 @@ function initNavigation() {
             const activePane = document.getElementById(targetTab);
             if (activePane) activePane.classList.add('active');
 
-            // Update top bar title
             const tabTitles = {
                 'cases-tab': 'Four Cases Showcase',
                 'facts-tab': 'Fact Explorer & Provenance',
@@ -37,13 +46,13 @@ function initNavigation() {
             document.getElementById('page-title').innerText = tabTitles[targetTab] || 'Fact Knowledge Layer';
 
             if (targetTab === 'graph-tab') {
-                initKnowledgeGraph();
+                setTimeout(initKnowledgeGraph, 50);
             }
         });
     });
 }
 
-// Fetch System Status & Ingested Counts
+// Fetch Status
 async function fetchStatus() {
     try {
         const res = await fetch('/api/status');
@@ -52,12 +61,11 @@ async function fetchStatus() {
         document.getElementById('facts-count-badge').innerText = data.facts_count;
         document.getElementById('rels-count-badge').innerText = data.relationships_count;
 
-        // Fetch docs
         fetchDocuments();
         fetchFacts();
         fetchRelationships();
     } catch (err) {
-        console.error('Error fetching status:', err);
+        console.error('Status fetch error:', err);
     }
 }
 
@@ -73,6 +81,7 @@ async function loadDataset(name) {
         showNotification(`Ingested ${data.details.documents_ingested} PDFs with ${data.details.total_facts} facts!`);
         fetchStatus();
         loadDatasetShowcase(name);
+        isGraphInitialized = false;
     } catch (err) {
         alert('Error loading dataset: ' + err.message);
     }
@@ -83,7 +92,7 @@ function switchDatasetShowcase(val) {
     loadDatasetShowcase(val);
 }
 
-// Load Four Cases Showcase
+// Load Showcase Cases
 async function loadDatasetShowcase(datasetName) {
     const container = document.getElementById('cases-cards-wrapper');
     container.innerHTML = '<div class="loading-spinner">Loading showcase cases...</div>';
@@ -114,9 +123,7 @@ async function loadDatasetShowcase(datasetName) {
                     `).join('')}
                 </div>
                 <div class="reasoning-box">
-                    <div class="reasoning-title">
-                        <span>🧠</span> System Semantic Reasoning & Reconciliation
-                    </div>
+                    <div class="reasoning-title"><span>🧠</span> System Semantic Reasoning & Reconciliation</div>
                     <p class="reasoning-text">${data.case_1_corroboration.system_reasoning}</p>
                 </div>
             </div>
@@ -142,9 +149,7 @@ async function loadDatasetShowcase(datasetName) {
                     `).join('')}
                 </div>
                 <div class="reasoning-box">
-                    <div class="reasoning-title">
-                        <span>🧠</span> System Semantic Reasoning & Conflict Detection
-                    </div>
+                    <div class="reasoning-title"><span>🧠</span> System Conflict Detection Logic</div>
                     <p class="reasoning-text">${data.case_2_contradiction.system_reasoning}</p>
                 </div>
             </div>
@@ -178,9 +183,7 @@ async function loadDatasetShowcase(datasetName) {
                     </ul>
                 </div>
                 <div class="reasoning-box">
-                    <div class="reasoning-title">
-                        <span>🧠</span> System Multi-Dimensional Reconciliation Logic
-                    </div>
+                    <div class="reasoning-title"><span>🧠</span> System Multi-Dimensional Reconciliation Logic</div>
                     <p class="reasoning-text">${data.case_3_apparent_contradiction_explained.system_reasoning}</p>
                 </div>
             </div>
@@ -206,9 +209,7 @@ async function loadDatasetShowcase(datasetName) {
                     </p>
                 </div>
                 <div class="reasoning-box">
-                    <div class="reasoning-title" style="color: #f472b6;">
-                        <span>🔬</span> Root Cause & Architectural Remediation
-                    </div>
+                    <div class="reasoning-title" style="color: #f472b6;"><span>🔬</span> Root Cause & Architectural Remediation</div>
                     <p class="reasoning-text" style="margin-bottom:8px;">
                         <strong>Root Cause:</strong> ${data.case_4_failure_and_remediation.root_cause}
                     </p>
@@ -231,50 +232,78 @@ async function fetchFacts() {
     try {
         const res = await fetch('/api/facts');
         allFacts = await res.json();
-        renderFactsTable(allFacts);
+        filteredFactsList = allFacts;
+        displayedFactsCount = 50;
+        renderFactsTable();
         populateDocFilterOptions();
     } catch (err) {
-        console.error('Error fetching facts:', err);
+        console.error('Facts error:', err);
     }
 }
 
-function renderFactsTable(facts) {
+function renderFactsTable() {
     const tbody = document.getElementById('facts-table-body');
-    if (!facts.length) {
+    const factsToRender = filteredFactsList.slice(0, displayedFactsCount);
+
+    if (!factsToRender.length) {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No facts found matching criteria.</td></tr>';
         return;
     }
 
-    tbody.innerHTML = facts.map(f => `
-        <tr>
-            <td><strong>${f.entity}</strong></td>
-            <td>${f.attribute}</td>
-            <td><span class="fact-val">${f.raw_value || f.value}</span> ${f.unit ? `<small class="text-dim">(${f.unit})</small>` : ''}</td>
-            <td><span class="text-sm">${f.temporal_context || '—'}</span><br><small class="text-dim">${f.scope_context || ''}</small></td>
-            <td><span class="doc-tag" title="${f.document_name}">${f.document_name}</span><br><span class="text-dim text-sm">Page ${f.page_number}</span></td>
-            <td><span class="text-sm text-dim" style="max-width:240px; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">"${f.evidence.verbatim_quote}"</span></td>
-            <td>
-                <button class="btn btn-sm btn-outline" onclick='openEvidenceModal(${JSON.stringify(f).replace(/'/g, "&apos;")})'>
-                    View Evidence
-                </button>
-            </td>
-        </tr>
-    `).join('');
+    let rowsHtml = '';
+    for (let i = 0; i < factsToRender.length; i++) {
+        const f = factsToRender[i];
+        rowsHtml += `
+            <tr>
+                <td><strong>${f.entity}</strong></td>
+                <td>${f.attribute}</td>
+                <td><span class="fact-val">${f.raw_value || f.value}</span> ${f.unit ? `<small class="text-dim">(${f.unit})</small>` : ''}</td>
+                <td><span class="text-sm">${f.temporal_context || '—'}</span><br><small class="text-dim">${f.scope_context || ''}</small></td>
+                <td><span class="doc-tag" title="${f.document_name}">${f.document_name}</span><br><span class="text-dim text-sm">Page ${f.page_number}</span></td>
+                <td><span class="text-sm text-dim" style="max-width:240px; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">"${f.evidence.verbatim_quote}"</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline" onclick="openEvidenceModalById('${f.id}')">
+                        Evidence
+                    </button>
+                </td>
+            </tr>
+        `;
+    }
+
+    if (filteredFactsList.length > displayedFactsCount) {
+        rowsHtml += `
+            <tr>
+                <td colspan="7" class="text-center" style="padding: 16px;">
+                    <button class="btn btn-secondary btn-sm" onclick="loadMoreFacts()">
+                        Load More Facts (${filteredFactsList.length - displayedFactsCount} remaining)
+                    </button>
+                </td>
+            </tr>
+        `;
+    }
+
+    tbody.innerHTML = rowsHtml;
+}
+
+function loadMoreFacts() {
+    displayedFactsCount += 50;
+    renderFactsTable();
 }
 
 function filterFacts() {
-    const q = document.getElementById('facts-search-input').value.toLowerCase();
+    const q = document.getElementById('facts-search-input').value.toLowerCase().trim();
     const doc = document.getElementById('facts-doc-filter').value.toLowerCase();
     const type = document.getElementById('facts-type-filter').value;
 
-    const filtered = allFacts.filter(f => {
+    filteredFactsList = allFacts.filter(f => {
         const matchesQ = !q || f.entity.toLowerCase().includes(q) || f.attribute.toLowerCase().includes(q) || String(f.value).toLowerCase().includes(q) || f.evidence.verbatim_quote.toLowerCase().includes(q);
         const matchesDoc = !doc || f.document_name.toLowerCase().includes(doc);
         const matchesType = !type || f.fact_type === type;
         return matchesQ && matchesDoc && matchesType;
     });
 
-    renderFactsTable(filtered);
+    displayedFactsCount = 50;
+    renderFactsTable();
 }
 
 function populateDocFilterOptions() {
@@ -290,7 +319,7 @@ async function fetchRelationships() {
         allRelationships = await res.json();
         renderRelationships(allRelationships);
     } catch (err) {
-        console.error('Error fetching relationships:', err);
+        console.error('Relationships error:', err);
     }
 }
 
@@ -303,7 +332,7 @@ function renderRelationships(rels) {
         return;
     }
 
-    grid.innerHTML = filtered.map(r => {
+    grid.innerHTML = filtered.slice(0, 40).map(r => {
         const badgeClass = r.relationship_type === 'CORROBORATED' ? 'badge-corroborated' :
                            r.relationship_type === 'CONTRADICTION' ? 'badge-contradiction' : 'badge-apparent';
         const typeLabel = r.relationship_type === 'CORROBORATED' ? 'Corroboration' :
@@ -369,13 +398,13 @@ async function fetchDocuments() {
             </div>
         `).join('');
     } catch (err) {
-        console.error('Error fetching docs:', err);
+        console.error('Docs error:', err);
     }
 }
 
-// Reconcile Trigger
+// Reconcile
 async function reconcileAll() {
-    showNotification('Re-running cross-document reconciliation...');
+    showNotification('Re-running reconciliation...');
     try {
         const res = await fetch('/api/reconcile', { method: 'POST' });
         const data = await res.json();
@@ -386,7 +415,7 @@ async function reconcileAll() {
     }
 }
 
-// Q&A Execution
+// Q&A
 async function executeQuery() {
     const input = document.getElementById('qa-input');
     const q = input.value.trim();
@@ -431,8 +460,11 @@ function setQuery(text) {
     executeQuery();
 }
 
-// Evidence Modal
-function openEvidenceModal(fact) {
+// Evidence Modal by ID
+function openEvidenceModalById(factId) {
+    const fact = allFacts.find(f => f.id === factId);
+    if (!fact) return;
+
     const modal = document.getElementById('evidence-modal');
     const body = document.getElementById('modal-body');
 
@@ -467,7 +499,7 @@ function closeEvidenceModal() {
     document.getElementById('evidence-modal').style.display = 'none';
 }
 
-// File Upload & Drag-and-Drop
+// Drag and drop upload
 function initDropzone() {
     const dropzone = document.getElementById('pdf-dropzone');
     dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = '#3b82f6'; });
@@ -513,66 +545,59 @@ async function uploadFiles(fileList) {
     }
 }
 
-// Interactive Knowledge Graph Canvas Simulation
-let graphNodes = [];
-let graphEdges = [];
-let isDragging = false;
-let draggedNode = null;
-let hoveredNode = null;
-
+// Knowledge Graph (Static Single-Pass Render with On-Demand Hover Redraw)
 async function initKnowledgeGraph() {
     const canvas = document.getElementById('graph-canvas');
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    canvas.width = canvas.parentElement.clientWidth;
-    canvas.height = canvas.parentElement.clientHeight;
+    canvas.width = canvas.parentElement.clientWidth || 800;
+    canvas.height = canvas.parentElement.clientHeight || 600;
 
     try {
         const res = await fetch('/api/graph');
         const data = await res.json();
 
-        // Layout nodes in 2D space with force-directed positions
         const w = canvas.width;
         const h = canvas.height;
 
-        graphNodes = data.nodes.map((n, i) => {
-            const angle = (i / data.nodes.length) * 2 * Math.PI;
-            const radius = n.type === 'document' ? 120 : (n.type === 'entity' ? 200 : 280);
+        // Cap graph node rendering to top 80 most connected nodes for instant performance
+        const nodesToRender = data.nodes.slice(0, 80);
+        const nodeIds = new Set(nodesToRender.map(n => n.id));
+
+        graphNodes = nodesToRender.map((n, i) => {
+            const angle = (i / nodesToRender.length) * 2 * Math.PI;
+            const radius = n.type === 'document' ? Math.min(w,h) * 0.18 : (n.type === 'entity' ? Math.min(w,h) * 0.30 : Math.min(w,h) * 0.42);
             return {
                 ...n,
-                x: w/2 + radius * Math.cos(angle) + (Math.random() - 0.5) * 50,
-                y: h/2 + radius * Math.sin(angle) + (Math.random() - 0.5) * 50,
-                vx: 0,
-                vy: 0,
-                r: n.type === 'document' ? 16 : (n.type === 'entity' ? 12 : 8),
+                x: w/2 + radius * Math.cos(angle) + (Math.sin(i * 3) * 20),
+                y: h/2 + radius * Math.sin(angle) + (Math.cos(i * 3) * 20),
+                r: n.type === 'document' ? 14 : (n.type === 'entity' ? 10 : 6),
                 color: n.type === 'document' ? '#3b82f6' : (n.type === 'entity' ? '#8b5cf6' : '#10b981')
             };
         });
 
-        graphEdges = data.edges;
+        graphEdges = data.edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
 
         setupCanvasInteractions(canvas);
-        requestAnimationFrame(renderGraphLoop);
+        drawGraph(ctx, canvas);
+        isGraphInitialized = true;
     } catch (err) {
         console.error('Error loading graph:', err);
     }
 }
 
-function renderGraphLoop() {
-    const canvas = document.getElementById('graph-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
+function drawGraph(ctx, canvas) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw edges
+    // Edges
     ctx.lineWidth = 1;
-    for (const e of graphEdges) {
+    for (let i = 0; i < graphEdges.length; i++) {
+        const e = graphEdges[i];
         const src = graphNodes.find(n => n.id === e.source);
         const tgt = graphNodes.find(n => n.id === e.target);
         if (src && tgt) {
-            ctx.strokeStyle = e.relationship_type ? '#f59e0b' : 'rgba(255, 255, 255, 0.12)';
+            ctx.strokeStyle = e.relationship_type ? '#f59e0b' : 'rgba(255, 255, 255, 0.1)';
             ctx.beginPath();
             ctx.moveTo(src.x, src.y);
             ctx.lineTo(tgt.x, tgt.y);
@@ -580,34 +605,43 @@ function renderGraphLoop() {
         }
     }
 
-    // Draw nodes
-    for (const n of graphNodes) {
+    // Nodes
+    for (let i = 0; i < graphNodes.length; i++) {
+        const n = graphNodes[i];
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.r, 0, 2 * Math.PI);
         ctx.fillStyle = n.color;
         ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = (hoveredNode && hoveredNode.id === n.id) ? 3 : 1;
-        ctx.stroke();
 
-        // Node label
-        ctx.fillStyle = '#d1d5db';
+        if (hoveredNode && hoveredNode.id === n.id) {
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+        }
+
+        ctx.fillStyle = '#9ca3af';
         ctx.font = '10px Inter, sans-serif';
         ctx.textAlign = 'center';
-        const label = n.label.length > 20 ? n.label.slice(0, 18) + '...' : n.label;
-        ctx.fillText(label, n.x, n.y + n.r + 12);
+        const label = n.label.length > 18 ? n.label.slice(0, 16) + '...' : n.label;
+        ctx.fillText(label, n.x, n.y + n.r + 10);
     }
 }
 
 function setupCanvasInteractions(canvas) {
     const tooltip = document.getElementById('graph-tooltip');
+    const ctx = canvas.getContext('2d');
 
     canvas.onmousemove = (e) => {
         const rect = canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
 
+        const prevHover = hoveredNode;
         hoveredNode = graphNodes.find(n => Math.hypot(n.x - mx, n.y - my) <= n.r + 4);
+
+        if (hoveredNode !== prevHover) {
+            drawGraph(ctx, canvas);
+        }
 
         if (hoveredNode) {
             tooltip.style.display = 'block';
@@ -623,7 +657,7 @@ function setupCanvasInteractions(canvas) {
         if (isDragging && draggedNode) {
             draggedNode.x = mx;
             draggedNode.y = my;
-            renderGraphLoop();
+            drawGraph(ctx, canvas);
         }
     };
 
