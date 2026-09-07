@@ -310,27 +310,21 @@ class FactExtractor:
         facts = []
 
         gov_patterns = [
-            # Sahil Barua Designation
+            # Open-domain generic executive leadership matching (e.g. "Jane Doe, Chief Executive Officer" or "John Smith is the Managing Director")
             (
-                r'(Sahil\s+Barua)\s*(?:,|is|was|appointed\s+as|serves\s+as|acts\s+as)?\s*(Managing\s+Director\s+(?:and|&)\s+Chief\s+Executive\s+Officer|MD\s+(?:and|&)\s+CEO|Managing\s+Director|Chief\s+Executive\s+Officer|CEO|Executive\s+Director)',
+                r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\s*(?:,|is|was|appointed\s+as|serves\s+as|acts\s+as)?\s*(Managing\s+Director\s+(?:and|&)\s+Chief\s+Executive\s+Officer|MD\s+(?:and|&)\s+CEO|Chief\s+Executive\s+Officer|Chief\s+Financial\s+Officer|Chief\s+Operating\s+Officer|Chief\s+Technology\s+Officer|Managing\s+Director|Executive\s+Director|Whole-time\s+Director|Non-Executive\s+Director|Chairman|President|Governor)\b',
                 "Key Personnel Designation",
                 "Corporate Governance"
             ),
-            # Sandeep Barasia Designation
+            # Registered Office Address (open-domain)
             (
-                r'(Sandeep\s+Kumar\s+Barasia|Sandeep\s+Barasia)\s*(?:,|is|was|appointed\s+as)?\s*(Executive\s+Director\s+(?:and|&)\s+Chief\s+Business\s+Officer|CBO|Executive\s+Director)',
-                "Key Personnel Designation",
-                "Corporate Governance"
-            ),
-            # Registered Office Address
-            (
-                r'(registered\s+office)\s*[:\-\s]*(?:is\s+situated\s+at)?\s*([^\.\n]+(?:New\s+Delhi|Gurugram|Haryana|Okhla)[^\.\n]*)',
+                r'(registered\s+office)\s*[:\-\s]*(?:is\s+situated\s+at|is\s+located\s+at)?\s*([^\.\n]{10,120})',
                 "Registered Office Address",
                 "Corporate Information"
             ),
-            # Date / Year of Incorporation
+            # Date / Year of Incorporation (open-domain)
             (
-                r'(incorporated\s+on|date\s+of\s+incorporation)\s*[:\-\s]*([A-Za-z]+\s+\d{1,2},\s+\d{4}|\d{1,2}\s+[A-Za-z]+\s+\d{4}|\b2011\b)',
+                r'(incorporated\s+on|date\s+of\s+incorporation)\s*[:\-\s]*([A-Za-z]+\s+\d{1,2},\s+\d{4}|\d{1,2}\s+[A-Za-z]+\s+\d{4}|\b\d{4}\b)',
                 "Date of Incorporation",
                 "Corporate History"
             )
@@ -414,12 +408,29 @@ class FactExtractor:
         return facts
 
     def _detect_entity_name(self, doc_name: str, text: str) -> str:
-        doc_lower = doc_name.lower()
-        if "delhivery" in doc_lower or "delhivery" in text.lower():
-            return "Delhivery Limited"
-        elif "rbi" in doc_lower or "economic survey" in doc_lower or "imf" in doc_lower or "india" in doc_lower:
-            return "Indian Economy"
-        return "Target Entity"
+        # 1. Check for explicit Corporate / Entity suffixes in the text (e.g., "XYZ Limited", "ABC Corporation")
+        m_corp = re.search(r'\b([A-Z][A-Za-z0-9\s]{2,30}\s+(?:Limited|Ltd\.?|Corporation|Corp\.?|Inc\.?|Bank|Enterprises|Technologies|Industries))\b', text)
+        if m_corp:
+            ent = m_corp.group(1).strip()
+            # Avoid long headers
+            if len(ent.split()) <= 5:
+                return ent
+
+        # 2. Check for Macro / Geographic / Institutional entities
+        m_inst = re.search(r'\b(Reserve Bank of India|Government of India|International Monetary Fund|World Bank|Ministry of Finance|Federal Reserve)\b', text, re.IGNORECASE)
+        if m_inst:
+            return m_inst.group(1).strip()
+
+        # 3. Derive entity name from cleaned document filename
+        base = Path(doc_name).stem
+        cleaned_base = re.sub(r'^\d+[\-_]?', '', base)  # remove leading numbering like 01-
+        cleaned_base = re.sub(r'[-_](?:excerpt|report|prospectus|presentation|annual|q\d|fy\d+|\d{4})[-_]?', ' ', cleaned_base, flags=re.IGNORECASE)
+        cleaned_base = re.sub(r'[-_]', ' ', cleaned_base).strip().title()
+
+        if cleaned_base and len(cleaned_base) > 2:
+            return cleaned_base
+
+        return "Entity (" + Path(doc_name).stem + ")"
 
     def _detect_period_in_context(self, text: str, pos: int) -> Optional[str]:
         # Search surrounding 150 chars for period identifiers
