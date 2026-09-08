@@ -12,7 +12,7 @@
 
 ## 🎥 Video Demo
 
-> **Demo Video Link**: **[▶️ Click Here to Watch the Demo Video (≤ 3 minutes)](https://youtu.be/YOUR_DEMO_VIDEO_LINK)**
+> **Demo Video Link**: **[▶️ Click Here to Watch the Demo Video (≤ 3 minutes)]([https://youtu.be/YOUR_DEMO_VIDEO_LINK](https://drive.google.com/file/d/1QdPUSitQ0M0e9QFFij_1oAAEx7RJpS3h/view?usp=sharing))**
 
 ### Video Coverage (Under 3 Minutes):
 1. **0:00 – 0:40 | PDF Ingestion & Real-Time Processing**: Drag-and-drop ingestion of a multi-page PDF into the dashboard; immediate parsing into grounded facts with exact physical page coordinates and verbatim quotes.
