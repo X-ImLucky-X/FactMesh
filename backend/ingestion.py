@@ -48,10 +48,43 @@ class DocumentParser:
                 if len(first_line) < 80 and not first_line.isdigit():
                     section_title = first_line
 
+            # Extract structured tables with bounding information and context header
+            tables_data = []
+            should_check_tables = False
+            if len(doc) <= 25:
+                should_check_tables = bool(re.search(r'\d', text))
+            else:
+                num_count = len(re.findall(r'\b\d+(?:,\d+)?(?:\.\d+)?\b', text))
+                has_keywords = bool(re.search(r'particulars|consolidated|statement|quarter|year ended|crore|million|billion|in %|metrics|segment|growth', text, re.I))
+                should_check_tables = num_count >= 8 and has_keywords
+
+            if should_check_tables:
+                try:
+                    found_tables = page.find_tables()
+                    if found_tables and found_tables.tables:
+                        for t in found_tables.tables:
+                            extracted = t.extract()
+                            if extracted and len(extracted) >= 2:
+                                bbox = getattr(t, "bbox", None)
+                                header_clip = ""
+                                if bbox:
+                                    try:
+                                        header_clip = page.get_text("text", clip=(0, max(0, bbox[1] - 80), page.rect.width, bbox[1])).strip()
+                                    except Exception:
+                                        pass
+                                tables_data.append({
+                                    "grid": extracted,
+                                    "bbox": bbox,
+                                    "header_clip": header_clip
+                                })
+                except Exception:
+                    pass
+
             pages_data.append({
                 "page_number": page_num,
                 "text": text,
                 "blocks": cleaned_blocks,
+                "tables": tables_data,
                 "section_title": section_title,
                 "char_count": len(text)
             })

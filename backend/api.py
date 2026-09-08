@@ -265,6 +265,16 @@ def reset_knowledge_layer():
     knowledge_layer.clear()
     return {"message": "Knowledge layer reset successfully."}
 
+@app.post("/api/reload")
+def reload_knowledge_layer():
+    """Reloads persisted facts and documents from disk."""
+    knowledge_layer.load_state()
+    return {
+        "message": "Knowledge layer reloaded from state.",
+        "documents_count": len(knowledge_layer.documents),
+        "facts_count": len(knowledge_layer.facts)
+    }
+
 # Serve frontend static assets
 if FRONTEND_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
